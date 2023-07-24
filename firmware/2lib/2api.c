@@ -16,6 +16,23 @@
 #include "2sysincludes.h"
 #include "2tpm_bootmode.h"
 
+/**
+ * Return the current boot mode (normal, recovery, or dev).
+ *
+ * @param ctx          Vboot context
+ * @return Current boot mode (see vb2_boot_mode enum).
+ */
+static enum vb2_boot_mode get_boot_mode(struct vb2_context *ctx)
+{
+	if (ctx->flags & VB2_CONTEXT_RECOVERY_MODE)
+		return VB2_BOOT_MODE_MANUAL_RECOVERY;
+
+	if (ctx->flags & VB2_CONTEXT_DEVELOPER_MODE)
+		return VB2_BOOT_MODE_DEVELOPER;
+
+	return VB2_BOOT_MODE_NORMAL;
+}
+
 vb2_error_t vb2api_fw_phase1(struct vb2_context *ctx)
 {
 	vb2_error_t rv;
@@ -352,7 +369,7 @@ union vb2_fw_boot_info vb2api_get_fw_boot_info(struct vb2_context *ctx)
 	info.slot = sd->fw_slot;
 	info.prev_slot = sd->last_fw_slot;
 	info.prev_result = sd->last_fw_result;
-	info.boot_mode = ctx->boot_mode;
+	info.boot_mode = get_boot_mode(ctx);
 
 	VB2_DEBUG("boot_mode=`%s`\n", vb2_boot_mode_string(info.boot_mode));
 
