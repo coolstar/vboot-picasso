@@ -77,6 +77,12 @@ static inline int vb2_is_error(vb2_error_t rv)
 	return rv >= VB2_ERROR_BASE && rv <= VB2_ERROR_MAX;
 }
 
+/* Helper for aligning fields in vb2_context. */
+#define VB2_PAD_STRUCT3(size, align, count) \
+	uint8_t _pad##count[align - (((size - 1) % align) + 1)]
+#define VB2_PAD_STRUCT2(size, align, count) VB2_PAD_STRUCT3(size, align, count)
+#define VB2_PAD_STRUCT(size, align) VB2_PAD_STRUCT2(size, align, __COUNTER__)
+
 /* Resource index for vb2ex_read_resource() */
 enum vb2_resource_index {
 

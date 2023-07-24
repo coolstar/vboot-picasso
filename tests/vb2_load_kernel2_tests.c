@@ -10,7 +10,6 @@
 #include "2misc.h"
 #include "2nvstorage.h"
 #include "2secdata.h"
-#include "common/boot_mode.h"
 #include "common/tests.h"
 #include "vboot_api.h"
 
@@ -79,9 +78,6 @@ static void reset_common_data(void)
 	vb2api_secdata_kernel_create(ctx);
 	vb2_secdata_kernel_init(ctx);
 	ctx->flags = VB2_CONTEXT_RECOVERY_MODE;
-
-	SET_BOOT_MODE(ctx, VB2_BOOT_MODE_MANUAL_RECOVERY,
-		      VB2_RECOVERY_RO_MANUAL);
 
 	sd = vb2_get_sd(ctx);
 	sd->kernel_version_secdata = 0xabcdef | (1 << 24);

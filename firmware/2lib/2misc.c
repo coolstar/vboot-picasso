@@ -760,38 +760,6 @@ char *vb2api_get_debug_info(struct vb2_context *ctx)
 	return buf;
 }
 
-void vb2_set_boot_mode(struct vb2_context *ctx)
-{
-	struct vb2_shared_data *sd = vb2_get_sd(ctx);
-
-	/* Cast boot mode to non-constant and assign */
-	enum vb2_boot_mode *boot_mode = (enum vb2_boot_mode *)&ctx->boot_mode;
-	*boot_mode = VB2_BOOT_MODE_NORMAL;
-
-	/*
-	 * The only way to pass this check and proceed to the recovery process
-	 * is to physically request a recovery (a.k.a. manual recovery).  All
-	 * other recovery requests including manual recovery requested by a
-	 * (compromised) host will end up with 'broken' screen.
-	 */
-	if ((ctx->flags & VB2_CONTEXT_FORCE_RECOVERY_MODE) &&
-	    !(ctx->flags & VB2_CONTEXT_NO_BOOT) &&
-	    (ctx->flags & VB2_CONTEXT_EC_TRUSTED)) {
-		*boot_mode = VB2_BOOT_MODE_MANUAL_RECOVERY;
-	} else if (sd->recovery_reason) {
-		vb2_gbb_flags_t gbb_flags = vb2api_gbb_get_flags(ctx);
-		if (gbb_flags & VB2_GBB_FLAG_FORCE_MANUAL_RECOVERY)
-			*boot_mode = VB2_BOOT_MODE_MANUAL_RECOVERY;
-		else
-			*boot_mode = VB2_BOOT_MODE_BROKEN_SCREEN;
-	} else if (vb2api_diagnostic_ui_enabled(ctx) &&
-		   vb2_nv_get(ctx, VB2_NV_DIAG_REQUEST)) {
-		*boot_mode = VB2_BOOT_MODE_DIAGNOSTICS;
-	} else if (ctx->flags & VB2_CONTEXT_DEVELOPER_MODE) {
-		*boot_mode = VB2_BOOT_MODE_DEVELOPER;
-	}
-}
-
 bool vb2api_hwcrypto_allowed(struct vb2_context *ctx)
 {
 	/* disable hwcrypto in recovery mode */

@@ -274,16 +274,6 @@ struct vb2_context {
 	 */
 	uint8_t secdata_fwmp[VB2_SECDATA_FWMP_MAX_SIZE];
 	VB2_PAD_STRUCT(VB2_SECDATA_FWMP_MAX_SIZE, 8);
-
-	/**********************************************************************
-	 * Fields below added in struct version 3.1.
-	 */
-
-	/*
-	 * Mutually exclusive boot mode (from enum vb2_boot_mode).
-	 * This constant is initialized after calling vb2api_fw_phase1().
-	 */
-	const uint8_t boot_mode;
 };
 
 #endif  /* VBOOT_REFERENCE_2CONTEXT_H_ */
