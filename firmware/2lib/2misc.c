@@ -18,6 +18,23 @@
 #include "vboot_api.h"
 #include "vboot_struct.h"
 
+/**
+ * Return the current boot mode (normal, recovery, or dev).
+ *
+ * @param ctx          Vboot context
+ * @return Current boot mode (see vb2_boot_mode enum).
+ */
+static enum vb2_boot_mode get_boot_mode(struct vb2_context *ctx)
+{
+	if (ctx->flags & VB2_CONTEXT_RECOVERY_MODE)
+		return VB2_BOOT_MODE_MANUAL_RECOVERY;
+
+	if (ctx->flags & VB2_CONTEXT_DEVELOPER_MODE)
+		return VB2_BOOT_MODE_DEVELOPER;
+
+	return VB2_BOOT_MODE_NORMAL;
+}
+
 vb2_error_t vb2_validate_gbb_signature(uint8_t *sig)
 {
 	const static uint8_t sig_xor[VB2_GBB_SIGNATURE_SIZE] =
@@ -420,7 +437,7 @@ vb2_error_t vb2_select_fw_slot(struct vb2_context *ctx)
 
 vb2_error_t vb2api_enable_developer_mode(struct vb2_context *ctx)
 {
-	if (ctx->boot_mode != VB2_BOOT_MODE_MANUAL_RECOVERY) {
+	if (get_boot_mode(ctx) != VB2_BOOT_MODE_MANUAL_RECOVERY) {
 		VB2_DEBUG("ERROR: Can only enable developer mode from manual "
 			  "recovery mode\n");
 		return VB2_ERROR_API_ENABLE_DEV_NOT_ALLOWED;
@@ -473,7 +490,7 @@ void vb2api_clear_recovery(struct vb2_context *ctx)
 	vb2_nv_set(ctx, VB2_NV_RECOVERY_SUBCODE, 0);
 
 	/* But stow recovery reason as subcode for the broken screen. */
-	if (ctx->boot_mode == VB2_BOOT_MODE_BROKEN_SCREEN) {
+	if (get_boot_mode(ctx) == VB2_BOOT_MODE_BROKEN_SCREEN) {
 		VB2_DEBUG("Stow recovery reason as subcode (%#x)\n",
 			  sd->recovery_reason);
 		vb2_nv_set(ctx, VB2_NV_RECOVERY_SUBCODE, sd->recovery_reason);

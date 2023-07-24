@@ -253,7 +253,7 @@ static vb2_error_t vb2_verify_kernel_vblock(
 	/* Check for rollback of key version except in recovery mode. */
 	enum vb2_boot_mode boot_mode = get_boot_mode(ctx);
 	uint32_t key_version = keyblock->data_key.key_version;
-	if (boot_mode != VB2_BOOT_MODE_RECOVERY) {
+	if (boot_mode != VB2_BOOT_MODE_MANUAL_RECOVERY) {
 		if (key_version < (sd->kernel_version_secdata >> 16)) {
 			keyblock_valid = 0;
 			if (need_keyblock_valid) {
@@ -343,7 +343,7 @@ static vb2_error_t vb2_verify_kernel_vblock(
 
 	/* If not in recovery mode, check for rollback of the kernel version. */
 	if (need_keyblock_valid &&
-	    boot_mode != VB2_BOOT_MODE_RECOVERY &&
+	    boot_mode != VB2_BOOT_MODE_MANUAL_RECOVERY &&
 	    sd->kernel_version < sd->kernel_version_secdata) {
 		VB2_DEBUG("Kernel version too low.\n");
 		return VB2_ERROR_KERNEL_PREAMBLE_VERSION_ROLLBACK;
@@ -728,7 +728,7 @@ vb2_error_t vb2api_load_kernel(struct vb2_context *ctx,
 		 * non-officially-signed kernel, there's no rollback
 		 * protection, so we can stop at the first valid kernel.
 		 */
-		if (get_boot_mode(ctx) == VB2_BOOT_MODE_RECOVERY ||
+		if (get_boot_mode(ctx) == VB2_BOOT_MODE_MANUAL_RECOVERY ||
 		    !keyblock_valid) {
 			VB2_DEBUG("In recovery mode or dev-signed kernel\n");
 			break;

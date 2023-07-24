@@ -12,6 +12,23 @@
 #include "2rsa.h"
 #include "2secdata.h"
 
+/**
+ * Return the current boot mode (normal, recovery, or dev).
+ *
+ * @param ctx          Vboot context
+ * @return Current boot mode (see vb2_boot_mode enum).
+ */
+static enum vb2_boot_mode get_boot_mode(struct vb2_context *ctx)
+{
+	if (ctx->flags & VB2_CONTEXT_RECOVERY_MODE)
+		return VB2_BOOT_MODE_MANUAL_RECOVERY;
+
+	if (ctx->flags & VB2_CONTEXT_DEVELOPER_MODE)
+		return VB2_BOOT_MODE_DEVELOPER;
+
+	return VB2_BOOT_MODE_NORMAL;
+}
+
 int vb2api_is_developer_signed(struct vb2_context *ctx)
 {
 	struct vb2_shared_data *sd = vb2_get_sd(ctx);
@@ -83,7 +100,7 @@ vb2_error_t vb2api_kernel_phase1(struct vb2_context *ctx)
 		/* Load recovery key from GBB. */
 		rv = vb2_gbb_read_recovery_key(ctx, &packed_key, NULL, &wb);
 		if (rv) {
-			if (ctx->boot_mode != VB2_BOOT_MODE_BROKEN_SCREEN)
+			if (get_boot_mode(ctx) != VB2_BOOT_MODE_BROKEN_SCREEN)
 				VB2_DIE("GBB read recovery key failed.\n");
 			else
 				/*
@@ -178,7 +195,7 @@ vb2_error_t vb2api_kernel_phase2(struct vb2_context *ctx)
 	}
 
 	/* Select boot path */
-	switch (ctx->boot_mode) {
+	switch (get_boot_mode(ctx)) {
 	case VB2_BOOT_MODE_MANUAL_RECOVERY:
 	case VB2_BOOT_MODE_BROKEN_SCREEN:
 		/* If we're in recovery mode just to do memory retraining, all
@@ -273,7 +290,7 @@ vb2_error_t vb2api_kernel_finalize(struct vb2_context *ctx)
 		return VB2_ERROR_ESCAPE_NO_BOOT;
 	}
 
-	if (ctx->boot_mode == VB2_BOOT_MODE_NORMAL)
+	if (get_boot_mode(ctx) == VB2_BOOT_MODE_NORMAL)
 		update_kernel_version(ctx);
 
 	return VB2_SUCCESS;
